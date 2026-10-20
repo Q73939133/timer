@@ -9,351 +9,323 @@
     box-sizing: border-box;
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    --bg: #0a0a0a;
-    --text: #f5f5f5;
-    --muted: #8a8a8a;
-    --border: #2a2a2a;
-    --ring: #4d4d4d;
-    --dot-sec: #60d1ff;
-    --dot-min: #ffb648;
-    --dot-hr: #ff6fae;
-    --play-bg: #a9c8fb;
-    --play-fg: #1c2f57;
-    --reset-bg: #1d6b3f;
-    --reset-fg: #eafcf0;
-    --accent: #2563eb;
+    --bg:#0a0a0a; --text:#f5f5f5; --muted:#8a8a8a; --border:#2a2a2a; --ring:#1f1f1f;
+    --sec:#60d1ff; --min:#ffb648; --hr:#ff6fae;
+    --play-bg:#a9c8fb; --play-fg:#1c2f57; --btn:#1e1e1e; --accent:#2563eb; --danger:#e5484d;
   }
   html { scroll-padding-top: env(safe-area-inset-top, 0px); }
   *, *::before, *::after { box-sizing: inherit; }
-  html, body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-  }
-  body { max-width: 420px; margin: 0 auto; padding: 16px; min-height: 100%; height: 100%; }
-  .hidden { display: none !important; }
+  html, body { margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif; }
+  body { max-width:420px; margin:0 auto; padding:16px; min-height:100%; }
+  .hidden { display:none !important; }
+  button { border:none; cursor:pointer; font-family:inherit; display:flex; align-items:center; justify-content:center; }
 
-  .list-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 4px 16px; }
-  .list-header h1 { font-size: 20px; margin: 0; font-weight: 500; }
-  #addBtn, #resetBtn, #playBtn, #backBtn { border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-  #addBtn { width: 40px; height: 40px; font-size: 22px; border-radius: 50%; background: var(--accent); color: #fff; }
-  .timer-list { list-style: none; margin: 0; padding: 0; }
-  .timer-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 4px; border-bottom: 1px solid var(--border); cursor: pointer; }
-  .row-time { font-family: 'Courier New', monospace; color: var(--muted); }
-  .empty-hint { color: var(--muted); text-align: center; margin-top: 60px; font-size: 14px; }
+  .list-header { display:flex; align-items:center; justify-content:space-between; padding:8px 4px 16px; }
+  .list-header h1 { font-size:20px; margin:0; font-weight:500; }
+  #addBtn { width:40px; height:40px; font-size:22px; border-radius:50%; background:var(--accent); color:#fff; }
+  .timer-list { list-style:none; margin:0; padding:0; }
+  .timer-row { display:flex; align-items:center; gap:10px; padding:14px 4px; border-bottom:1px solid var(--border); cursor:pointer; }
+  .timer-row .name { flex:1; }
+  .row-time { font-family:'Courier New',monospace; color:var(--muted); }
+  .row-time.live { color:var(--sec); }
+  .del { width:32px; height:32px; border-radius:50%; background:transparent; color:var(--muted); font-size:18px; }
+  .del:hover { background:#2a1517; color:var(--danger); }
+  .empty-hint { color:var(--muted); text-align:center; margin-top:60px; font-size:14px; }
 
-  .timer-header { display: flex; align-items: center; gap: 12px; padding: 8px 4px; }
-  #backBtn { width: 36px; height: 36px; border-radius: 50%; background: transparent; color: var(--text); }
-  #timerTitle { font-size: 16px; color: var(--muted); cursor: pointer; border-bottom: 1px dashed transparent; }
-  #timerTitle:hover { border-bottom-color: var(--muted); }
+  #banners .banner { background:#1a1608; border:1px solid #5a4a12; border-radius:12px; padding:12px; margin-bottom:10px; font-size:14px; }
+  .banner p { margin:0 0 10px; line-height:1.4; }
+  .banner .acts { display:flex; gap:8px; }
+  .banner button { padding:7px 12px; border-radius:8px; font-size:13px; background:var(--btn); color:var(--text); }
+  .banner button.pri { background:var(--accent); }
 
-  .ring-wrap { position: relative; width: min(72vw, 260px); height: min(72vw, 260px); margin: 32px auto 8px; }
-  .ring-wrap svg { width: 100%; height: 100%; display: block; }
-  .ring-track { fill: none; stroke: var(--ring); stroke-width: 8; }
+  .timer-header { display:flex; align-items:center; gap:12px; padding:8px 4px; }
+  #backBtn { width:36px; height:36px; border-radius:50%; background:transparent; color:var(--text); }
+  #timerTitle { flex:1; font-size:16px; color:var(--muted); cursor:pointer; border-bottom:1px dashed transparent; }
+  #timerTitle:hover { border-bottom-color:var(--muted); }
+  #delBtn { width:36px; height:36px; border-radius:50%; background:transparent; color:var(--muted); }
+  #delBtn:hover { color:var(--danger); }
 
-  /* Time display: single centered row, no wrap, so it sits dead-center in the ring */
-  .time-display {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 12px;
-  }
-  .time-row {
-    display: flex;
-    align-items: baseline;
-    white-space: nowrap;
-    font-size: clamp(20px, 6.2vw, 30px);
-    font-weight: 400;
-  }
-  .time-row .cs { font-size: 0.62em; color: var(--muted); margin-left: 2px; }
+  .ring-wrap { position:relative; width:min(78vw,300px); height:min(78vw,300px); margin:24px auto 8px; }
+  .ring-wrap svg { width:100%; height:100%; display:block; }
+  .track { fill:none; stroke:#2e2e2e; stroke-width:6; }
+  .time-display { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  .time-row { display:flex; align-items:baseline; white-space:nowrap; }
+  .time-main { font-size:clamp(22px,6.6vw,32px); font-variant-numeric:tabular-nums; white-space:nowrap; line-height:1; }
+  .time-cs { font-size:clamp(13px,3.8vw,18px); color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap; line-height:1; margin-left:2px; }
+  .legend { display:flex; justify-content:center; gap:16px; font-size:12px; color:var(--muted); margin-top:4px; }
+  .legend i { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; }
 
-  .controls { display: flex; justify-content: center; align-items: center; gap: 28px; margin-top: 24px; }
-  #resetBtn { width: 52px; height: 52px; border-radius: 50%; background: var(--reset-bg); color: var(--reset-fg); }
-  #playBtn { width: 68px; height: 68px; border-radius: 50%; background: var(--play-bg); color: var(--play-fg); }
+  .controls { display:flex; justify-content:center; align-items:center; gap:24px; margin-top:24px; }
+  .circ { width:52px; height:52px; border-radius:50%; background:var(--btn); color:var(--text); }
+  #playBtn { width:68px; height:68px; border-radius:50%; background:var(--play-bg); color:var(--play-fg); }
 
-  /* Name modal (used both when adding a new timer and renaming an existing one) */
-  .modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.55);
-    display: flex; align-items: center; justify-content: center;
-    padding: 20px; z-index: 10;
-  }
-  .modal-box {
-    background: #151515; border: 1px solid var(--border); border-radius: 14px;
-    width: 100%; max-width: 320px; padding: 20px;
-  }
-  .modal-box label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
-  .modal-box input {
-    width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border);
-    background: #0d0d0d; color: var(--text); font-size: 16px; outline: none;
-  }
-  .modal-box input:focus { border-color: var(--accent); }
-  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
-  .modal-actions button {
-    border: none; border-radius: 8px; padding: 9px 16px; font-size: 14px; cursor: pointer;
-  }
-  #modalCancel { background: transparent; color: var(--muted); }
-  #modalSave { background: var(--accent); color: #fff; }
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; padding:20px; z-index:10; }
+  .modal-box { background:#151515; border:1px solid var(--border); border-radius:14px; width:100%; max-width:320px; padding:20px; }
+  .modal-box label { display:block; font-size:13px; color:var(--muted); margin-bottom:8px; }
+  .modal-box input { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--border); background:#0d0d0d; color:var(--text); font-size:16px; outline:none; }
+  .modal-box input:focus { border-color:var(--accent); }
+  .hms { display:flex; gap:8px; }
+  .hms div { flex:1; }
+  .hms label { text-align:center; margin-bottom:4px; }
+  .hms input { text-align:center; }
+  .modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:18px; }
+  .modal-actions button { border-radius:8px; padding:9px 16px; font-size:14px; color:#fff; background:var(--accent); }
+  .modal-actions .ghost { background:transparent; color:var(--muted); margin-right:auto; }
+  .modal-actions .sub { background:#7a2a2d; }
 </style>
 </head>
 <body>
 
-  <div id="listScreen" class="screen">
-    <header class="list-header">
-      <h1>Timers</h1>
-      <button id="addBtn" title="Add new timer">+</button>
-    </header>
-    <ul id="timerList" class="timer-list"></ul>
-    <div id="emptyHint" class="empty-hint hidden">Tap + to add a timer.</div>
+<div id="listScreen">
+  <header class="list-header"><h1>Timers</h1><button id="addBtn" title="Add timer">+</button></header>
+  <div id="banners"></div>
+  <ul id="timerList" class="timer-list"></ul>
+  <div id="emptyHint" class="empty-hint hidden">Tap + to add a timer.</div>
+</div>
+
+<div id="timerScreen" class="hidden">
+  <header class="timer-header">
+    <button id="backBtn" title="Back"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z"/></svg></button>
+    <span id="timerTitle" title="Tap to rename"></span>
+    <button id="delBtn" title="Delete timer"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"/></svg></button>
+  </header>
+  <div class="ring-wrap">
+    <svg viewBox="0 0 260 260">
+      <circle class="track" cx="130" cy="130" r="108"/>
+      <circle id="dotH" cx="130" cy="22" r="11" fill="var(--hr)"/>
+      <circle id="dotM" cx="130" cy="22" r="8.5" fill="var(--min)"/>
+      <circle id="dotS" cx="130" cy="22" r="6" fill="var(--sec)"/>
+    </svg>
+    <div class="time-display"><div class="time-row"><span class="time-main" id="tMain">0:00:00</span><span class="time-cs" id="tCs">.000</span></div></div>
   </div>
-
-  <div id="timerScreen" class="screen hidden">
-    <header class="timer-header">
-      <button id="backBtn" title="Back">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z"/></svg>
-      </button>
-      <span id="timerTitle" title="Tap to rename"></span>
-    </header>
-    <div class="ring-wrap">
-      <svg viewBox="0 0 260 260">
-        <circle cx="130" cy="130" r="108" class="ring-track"></circle>
-        <circle id="dotHour" cx="130" cy="22" r="7" fill="var(--dot-hr)"></circle>
-        <circle id="dotMinute" cx="130" cy="22" r="7" fill="var(--dot-min)"></circle>
-        <circle id="dotSecond" cx="130" cy="22" r="7" fill="var(--dot-sec)"></circle>
-      </svg>
-      <div class="time-display" id="timeDisplay"><div class="time-row"><span class="main">0:00:00</span><span class="cs">.000</span></div></div>
-    </div>
-    <div class="controls">
-      <button id="resetBtn" title="Reset">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 1 0 7.75 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4z"/></svg>
-      </button>
-      <button id="playBtn" title="Play or pause"></button>
-    </div>
+  <div class="legend"><span><i style="background:var(--hr)"></i>Hours</span><span><i style="background:var(--min)"></i>Minutes</span><span><i style="background:var(--sec)"></i>Seconds</span></div>
+  <div class="controls">
+    <button id="resetBtn" class="circ" title="Reset"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 1 0 7.75 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4z"/></svg></button>
+    <button id="playBtn" title="Play / pause"></button>
+    <button id="adjBtn" class="circ" title="Add or remove time" style="font-size:18px">±</button>
   </div>
+</div>
 
-  <div id="nameModal" class="modal-overlay hidden">
-    <div class="modal-box">
-      <label for="nameInput" id="nameModalLabel">What are you tracking?</label>
-      <input id="nameInput" type="text" placeholder="e.g. Reading" maxlength="40" />
-      <div class="modal-actions">
-        <button id="modalCancel">Cancel</button>
-        <button id="modalSave">Save</button>
-      </div>
-    </div>
+<div id="nameModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <label for="nameInput" id="nameLabel">What are you tracking?</label>
+    <input id="nameInput" type="text" placeholder="e.g. Reading" maxlength="40">
+    <div class="modal-actions"><button id="nameCancel" class="ghost">Cancel</button><button id="nameSave">Create</button></div>
   </div>
+</div>
 
-  <script>
-  (function () {
-    var STORAGE_KEY = 'circular_timers_v1';
-    var PLAY_ICON = '<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
-    var PAUSE_ICON = '<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>';
+<div id="adjModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <label>Add or remove time</label>
+    <div class="hms">
+      <div><label for="adjH">hours</label><input id="adjH" type="number" min="0" value="0"></div>
+      <div><label for="adjM">min</label><input id="adjM" type="number" min="0" value="0"></div>
+      <div><label for="adjS">sec</label><input id="adjS" type="number" min="0" value="0"></div>
+    </div>
+    <div class="modal-actions"><button id="adjCancel" class="ghost">Cancel</button><button id="adjSub" class="sub">− Remove</button><button id="adjAdd">+ Add</button></div>
+  </div>
+</div>
 
-    var timers = {};
-    var order = [];
-    var nextId = 1;
-    var currentId = null;
-    var modalMode = null; // 'create' | 'rename'
+<script>
+(function () {
+  var KEY = 'circular_timers_v1', SEEN = 'circular_timers_lastseen';
+  var PLAY = '<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+  var PAUSE = '<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>';
+  var timers = {}, order = [], nextId = 1, currentId = null, nameMode = null;
+  var $ = function (id) { return document.getElementById(id); };
+  var R = 108;
 
-    var listScreen = document.getElementById('listScreen');
-    var timerScreen = document.getElementById('timerScreen');
-    var timerListEl = document.getElementById('timerList');
-    var emptyHint = document.getElementById('emptyHint');
-    var addBtn = document.getElementById('addBtn');
-    var backBtn = document.getElementById('backBtn');
-    var timerTitleEl = document.getElementById('timerTitle');
-    var timeDisplayEl = document.getElementById('timeDisplay');
-    var playBtn = document.getElementById('playBtn');
-    var resetBtn = document.getElementById('resetBtn');
-    var dotSecond = document.getElementById('dotSecond');
-    var dotMinute = document.getElementById('dotMinute');
-    var dotHour = document.getElementById('dotHour');
+  function pad(n, l) { return String(n).padStart(l, '0'); }
+  function fmt(ms) {
+    ms = Math.max(0, Math.floor(ms));
+    var s = Math.floor(ms / 1000), m = Math.floor(s / 60);
+    return { main: Math.floor(m / 60) + ':' + pad(m % 60, 2) + ':' + pad(s % 60, 2), ms: pad(ms % 1000, 3) };
+  }
+  function human(ms) {
+    var m = Math.round(ms / 60000);
+    return m >= 60 ? Math.floor(m / 60) + 'h ' + (m % 60) + 'm' : m + 'm';
+  }
+  function elapsed(t) { return t.elapsed + (t.running ? Date.now() - t.startTs : 0); }
+  function anyRunning() { return order.some(function (id) { return timers[id].running; }); }
 
-    var nameModal = document.getElementById('nameModal');
-    var nameInput = document.getElementById('nameInput');
-    var nameModalLabel = document.getElementById('nameModalLabel');
-    var modalCancel = document.getElementById('modalCancel');
-    var modalSave = document.getElementById('modalSave');
+  function save() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify({ nextId: nextId, order: order, items: order.map(function (id) {
+        var t = timers[id]; return { id: id, label: t.label, elapsed: t.elapsed, running: t.running, startTs: t.startTs };
+      }) }));
+    } catch (e) {}
+  }
+  function load() { try { return JSON.parse(localStorage.getItem(KEY)); } catch (e) { return null; } }
+  function beat() { try { localStorage.setItem(SEEN, String(Date.now())); } catch (e) {} }
 
-    var CX = 130, CY = 130, R = 108;
+  function setDot(id, ms, period) {
+    var r = (ms % period) / period * 2 * Math.PI, el = $(id);
+    el.setAttribute('cx', 130 + R * Math.sin(r)); el.setAttribute('cy', 130 - R * Math.cos(r));
+  }
+  function renderTimer() {
+    var t = timers[currentId]; if (!t) return;
+    var e = elapsed(t), f = fmt(e);
+    $('tMain').textContent = f.main; $('tCs').textContent = '.' + f.ms;
+    setDot('dotS', e, 1000); setDot('dotM', e, 60000); setDot('dotH', e, 3600000);
+    $('playBtn').innerHTML = t.running ? PAUSE : PLAY;
+    $('timerTitle').textContent = t.label;
+  }
+  function renderList() {
+    var ul = $('timerList'); ul.innerHTML = '';
+    $('emptyHint').classList.toggle('hidden', order.length > 0);
+    order.forEach(function (id) {
+      var t = timers[id], li = document.createElement('li');
+      li.className = 'timer-row';
+      li.innerHTML = '<span class="name"></span><span class="row-time"></span><button class="del" title="Delete">✕</button>';
+      li.children[0].textContent = t.label;
+      li.children[1].textContent = fmt(elapsed(t)).main;
+      if (t.running) li.children[1].classList.add('live');
+      li.children[2].addEventListener('click', function (ev) { ev.stopPropagation(); removeTimer(id); });
+      li.addEventListener('click', function () { openTimer(id); });
+      ul.appendChild(li);
+    });
+  }
+  function openTimer(id) { currentId = id; $('listScreen').classList.add('hidden'); $('timerScreen').classList.remove('hidden'); renderTimer(); }
+  function goBack() { currentId = null; $('timerScreen').classList.add('hidden'); $('listScreen').classList.remove('hidden'); renderList(); }
 
-    function pad(n, len) { return String(n).padStart(len, '0'); }
+  function removeTimer(id) {
+    var t = timers[id];
+    if (!confirm('Delete "' + t.label + '" and its time?')) return;
+    delete timers[id];
+    order = order.filter(function (x) { return x !== id; });
+    save();
+    if (currentId === id) goBack(); else renderList();
+  }
 
-    function formatElapsed(ms) {
-      var totalMs = Math.floor(ms);
-      var msPart = totalMs % 1000;
-      var totalSec = Math.floor(totalMs / 1000);
-      var sec = totalSec % 60;
-      var totalMin = Math.floor(totalSec / 60);
-      var min = totalMin % 60;
-      var hr = Math.floor(totalMin / 60);
-      return { main: hr + ':' + pad(min, 2) + ':' + pad(sec, 2), ms: pad(msPart, 3) };
+  function openName(mode) {
+    nameMode = mode;
+    $('nameLabel').textContent = mode === 'create' ? 'What are you tracking?' : 'Rename';
+    $('nameSave').textContent = mode === 'create' ? 'Create' : 'Save';
+    $('nameInput').value = mode === 'rename' ? timers[currentId].label : '';
+    $('nameModal').classList.remove('hidden');
+    setTimeout(function () { $('nameInput').focus(); $('nameInput').select(); }, 0);
+  }
+  function closeName() { $('nameModal').classList.add('hidden'); nameMode = null; }
+
+  function togglePlay() {
+    var t = timers[currentId];
+    if (!t.running) { t.running = true; t.startTs = Date.now(); askPerm(); }
+    else { t.elapsed += Date.now() - t.startTs; t.running = false; }
+    beat(); save(); renderTimer();
+  }
+  function reset() {
+    var t = timers[currentId];
+    if (elapsed(t) > 60000 && !confirm('Reset this timer to 0?')) return;
+    t.running = false; t.elapsed = 0; t.startTs = 0; save(); renderTimer();
+  }
+  function adjust(sign) {
+    var ms = ((+$('adjH').value || 0) * 3600 + (+$('adjM').value || 0) * 60 + (+$('adjS').value || 0)) * 1000 * sign;
+    var t = timers[currentId];
+    if (t.running) { t.elapsed += Date.now() - t.startTs; t.startTs = Date.now(); }
+    t.elapsed = Math.max(0, t.elapsed + ms);
+    save(); renderTimer(); $('adjModal').classList.add('hidden');
+  }
+
+  /* ---- notifications ---- */
+  function askPerm() {
+    try { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } catch (e) {}
+  }
+  function beep() {
+    try {
+      var a = new (window.AudioContext || window.webkitAudioContext)(), o = a.createOscillator(), g = a.createGain();
+      o.connect(g); g.connect(a.destination); o.frequency.value = 880; g.gain.value = 0.15;
+      o.start(); o.stop(a.currentTime + 0.25);
+    } catch (e) {}
+  }
+  var origTitle = document.title, blink = null;
+  function notifyRunning() {
+    var names = order.filter(function (id) { return timers[id].running; }).map(function (id) { return timers[id].label; });
+    if (!names.length) return;
+    var msg = 'Still running: ' + names.join(', ');
+    try { if ('Notification' in window && Notification.permission === 'granted') new Notification('Timer still running', { body: msg, tag: 'timer-running' }); } catch (e) {}
+    beep();
+    if (!blink) { var on = false; blink = setInterval(function () { on = !on; document.title = on ? '⏱ ' + msg : origTitle; }, 1000); }
+  }
+  function stopBlink() { if (blink) { clearInterval(blink); blink = null; document.title = origTitle; } }
+
+  var hiddenSince = 0, lastNotify = 0;
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) { hiddenSince = Date.now(); lastNotify = 0; }
+    else { stopBlink(); hiddenSince = 0; }
+  });
+  setInterval(function () {
+    beat();
+    if (document.hidden && anyRunning() && Date.now() - hiddenSince > 30000 && Date.now() - lastNotify > 300000) {
+      lastNotify = Date.now(); notifyRunning();
     }
+  }, 5000);
+  window.addEventListener('beforeunload', function (e) { beat(); if (anyRunning()) { e.preventDefault(); e.returnValue = ''; } });
 
-    function currentElapsed(t) {
-      return t.elapsed + (t.running ? (Date.now() - t.startTs) : 0);
-    }
-
-    function setDot(dot, ms, periodMs) {
-      var progress = (ms % periodMs) / periodMs * 360;
-      var rad = progress * Math.PI / 180;
-      dot.setAttribute('cx', CX + R * Math.sin(rad));
-      dot.setAttribute('cy', CY - R * Math.cos(rad));
-    }
-
-    function saveToStorage() {
-      try {
-        var items = order.map(function (id) {
-          var t = timers[id];
-          return { id: id, label: t.label, elapsed: t.elapsed, running: t.running, startTs: t.startTs };
-        });
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ nextId: nextId, order: order, items: items }));
-      } catch (e) { /* storage unavailable */ }
-    }
-
-    function loadFromStorage() {
-      try {
-        var raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? JSON.parse(raw) : null;
-      } catch (e) { return null; }
-    }
-
-    function renderTimerScreen() {
-      var t = timers[currentId];
-      if (!t) return;
-      var elapsed = currentElapsed(t);
-      var f = formatElapsed(elapsed);
-      timeDisplayEl.innerHTML = '<div class="time-row"><span class="main">' + f.main + '</span><span class="cs">.' + f.ms + '</span></div>';
-      setDot(dotSecond, elapsed, 1000);
-      setDot(dotMinute, elapsed, 60000);
-      setDot(dotHour, elapsed, 3600000);
-      playBtn.innerHTML = t.running ? PAUSE_ICON : PLAY_ICON;
-      timerTitleEl.textContent = t.label;
-    }
-
-    function renderList() {
-      timerListEl.innerHTML = '';
-      emptyHint.classList.toggle('hidden', order.length > 0);
-      order.forEach(function (id) {
-        var t = timers[id];
-        var li = document.createElement('li');
-        li.className = 'timer-row';
-        li.innerHTML = '<span></span><span class="row-time"></span>';
-        li.children[0].textContent = t.label;
-        li.children[1].textContent = formatElapsed(currentElapsed(t)).main;
-        li.addEventListener('click', function () { openTimer(id); });
-        timerListEl.appendChild(li);
+  /* ---- "left running while away" banners ---- */
+  function showAway(lastSeen) {
+    var box = $('banners');
+    order.forEach(function (id) {
+      var t = timers[id];
+      if (!t.running) return;
+      var away = Date.now() - lastSeen;
+      var d = document.createElement('div'); d.className = 'banner';
+      d.innerHTML = '<p></p><div class="acts"><button class="pri">Stop at leave time</button><button>Keep running</button></div>';
+      d.children[0].textContent = '"' + t.label + '" kept running while you were away (' + human(away) + ').';
+      d.querySelector('.pri').addEventListener('click', function () {
+        t.elapsed += Math.max(0, lastSeen - t.startTs); t.running = false; t.startTs = 0;
+        save(); d.remove(); renderList();
       });
-    }
+      d.children[1].children[1].addEventListener('click', function () { d.remove(); });
+      box.appendChild(d);
+    });
+  }
 
-    function openTimer(id) {
-      currentId = id;
-      listScreen.classList.add('hidden');
-      timerScreen.classList.remove('hidden');
-      renderTimerScreen();
-    }
-
-    function goBack() {
-      currentId = null;
-      timerScreen.classList.add('hidden');
-      listScreen.classList.remove('hidden');
-      renderList();
-    }
-
-    function openModal(mode) {
-      modalMode = mode;
-      if (mode === 'create') {
-        nameModalLabel.textContent = 'What are you tracking?';
-        nameInput.value = '';
-        modalSave.textContent = 'Create';
-      } else {
-        nameModalLabel.textContent = 'Rename';
-        nameInput.value = timers[currentId] ? timers[currentId].label : '';
-        modalSave.textContent = 'Save';
-      }
-      nameModal.classList.remove('hidden');
-      setTimeout(function () { nameInput.focus(); nameInput.select(); }, 0);
-    }
-
-    function closeModal() {
-      nameModal.classList.add('hidden');
-      modalMode = null;
-    }
-
-    function createTimer(name) {
+  /* ---- events ---- */
+  $('addBtn').addEventListener('click', function () { openName('create'); });
+  $('timerTitle').addEventListener('click', function () { openName('rename'); });
+  $('backBtn').addEventListener('click', goBack);
+  $('delBtn').addEventListener('click', function () { removeTimer(currentId); });
+  $('playBtn').addEventListener('click', togglePlay);
+  $('resetBtn').addEventListener('click', reset);
+  $('adjBtn').addEventListener('click', function () { $('adjH').value = $('adjM').value = $('adjS').value = 0; $('adjModal').classList.remove('hidden'); $('adjM').focus(); });
+  $('adjCancel').addEventListener('click', function () { $('adjModal').classList.add('hidden'); });
+  $('adjAdd').addEventListener('click', function () { adjust(1); });
+  $('adjSub').addEventListener('click', function () { adjust(-1); });
+  $('nameCancel').addEventListener('click', closeName);
+  $('nameModal').addEventListener('click', function (e) { if (e.target === $('nameModal')) closeName(); });
+  $('adjModal').addEventListener('click', function (e) { if (e.target === $('adjModal')) $('adjModal').classList.add('hidden'); });
+  $('nameSave').addEventListener('click', function () {
+    var v = $('nameInput').value.trim();
+    if (nameMode === 'create') {
       var id = nextId++;
-      timers[id] = { label: name || ('Timer ' + id), running: false, startTs: 0, elapsed: 0 };
-      order.push(id);
-      saveToStorage();
-      openTimer(id);
+      timers[id] = { label: v || 'Timer ' + id, running: false, startTs: 0, elapsed: 0 };
+      order.push(id); save(); closeName(); openTimer(id); return;
     }
+    if (nameMode === 'rename' && timers[currentId]) { timers[currentId].label = v || timers[currentId].label; save(); renderTimer(); }
+    closeName();
+  });
+  $('nameInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('nameSave').click(); if (e.key === 'Escape') closeName(); });
 
-    function renameCurrent(name) {
-      var t = timers[currentId];
-      if (!t) return;
-      t.label = name || t.label;
-      saveToStorage();
-      renderTimerScreen();
+  (function loop() {
+    if (currentId !== null) renderTimer();
+    else if (anyRunning() && !$('listScreen').classList.contains('hidden')) {
+      var rows = $('timerList').children;
+      order.forEach(function (id, i) { if (rows[i] && timers[id].running) rows[i].children[1].textContent = fmt(elapsed(timers[id])).main; });
     }
-
-    function togglePlay() {
-      var t = timers[currentId];
-      if (!t.running) {
-        t.running = true;
-        t.startTs = Date.now();
-      } else {
-        t.elapsed += Date.now() - t.startTs;
-        t.running = false;
-      }
-      saveToStorage();
-      renderTimerScreen();
-    }
-
-    function resetTimer() {
-      var t = timers[currentId];
-      t.running = false;
-      t.elapsed = 0;
-      t.startTs = 0;
-      saveToStorage();
-      renderTimerScreen();
-    }
-
-    addBtn.addEventListener('click', function () { openModal('create'); });
-    timerTitleEl.addEventListener('click', function () { openModal('rename'); });
-    backBtn.addEventListener('click', goBack);
-    playBtn.addEventListener('click', togglePlay);
-    resetBtn.addEventListener('click', resetTimer);
-
-    modalCancel.addEventListener('click', closeModal);
-    nameModal.addEventListener('click', function (e) { if (e.target === nameModal) closeModal(); });
-    modalSave.addEventListener('click', function () {
-      var val = nameInput.value.trim();
-      if (modalMode === 'create') createTimer(val);
-      else if (modalMode === 'rename') renameCurrent(val);
-      closeModal();
-    });
-    nameInput.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') modalSave.click();
-      if (e.key === 'Escape') closeModal();
-    });
-
-    function animate() {
-      if (currentId !== null) renderTimerScreen();
-      requestAnimationFrame(animate);
-    }
-    requestAnimationFrame(animate);
-
-    var stored = loadFromStorage();
-    if (stored && Array.isArray(stored.items) && stored.items.length > 0) {
-      stored.items.forEach(function (item) {
-        timers[item.id] = { label: item.label, running: !!item.running, startTs: item.startTs || 0, elapsed: item.elapsed || 0 };
-      });
-      order = (stored.order && stored.order.length) ? stored.order : stored.items.map(function (i) { return i.id; });
-      nextId = stored.nextId || (order.length + 1);
-    }
-    renderList();
+    requestAnimationFrame(loop);
   })();
-  </script>
+
+  var s = load();
+  if (s && Array.isArray(s.items)) {
+    s.items.forEach(function (i) { timers[i.id] = { label: i.label, running: !!i.running, startTs: i.startTs || 0, elapsed: i.elapsed || 0 }; });
+    order = (s.order && s.order.length) ? s.order : s.items.map(function (i) { return i.id; });
+    nextId = s.nextId || (order.length + 1);
+  }
+  renderList();
+  var seen = +localStorage.getItem(SEEN) || 0;
+  if (seen && Date.now() - seen > 60000 && anyRunning()) showAway(seen);
+  beat();
+})();
+</script>
 </body>
 </html>
