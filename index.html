@@ -22,6 +22,9 @@
 
   .list-header { display:flex; align-items:center; justify-content:space-between; padding:8px 4px 16px; }
   .list-header h1 { font-size:20px; margin:0; font-weight:500; }
+  .hbtns { display:flex; align-items:center; gap:8px; }
+  .ibtn { width:40px; height:40px; border-radius:50%; background:var(--btn); color:var(--text); }
+  .ibtn:hover { background:#2a2a2a; }
   #addBtn { width:40px; height:40px; font-size:22px; border-radius:50%; background:var(--accent); color:#fff; }
   .timer-list { list-style:none; margin:0; padding:0; }
   .timer-row { display:flex; align-items:center; gap:10px; padding:14px 4px; border-bottom:1px solid var(--border); cursor:pointer; }
@@ -77,7 +80,13 @@
 <body>
 
 <div id="listScreen">
-  <header class="list-header"><h1>Timers</h1><button id="addBtn" title="Add timer">+</button></header>
+  <header class="list-header"><h1>Timers</h1><div class="hbtns">
+      <button id="expBtn" class="ibtn" title="Export timers"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7zM5 18v2h14v-2z"/></svg></button>
+      <button id="impBtn" class="ibtn" title="Import timers"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg></button>
+      <button id="addBtn" title="Add timer">+</button>
+    </div>
+    <input id="impFile" type="file" accept=".json,application/json" class="hidden">
+  </header>
   <div id="banners"></div>
   <ul id="timerList" class="timer-list"></ul>
   <div id="emptyHint" class="empty-hint hidden">Tap + to add a timer.</div>
@@ -209,7 +218,7 @@
 
   function togglePlay() {
     var t = timers[currentId];
-    if (!t.running) { t.running = true; t.startTs = Date.now(); askPerm(); }
+    if (!t.running) { t.running = true; t.startTs = Date.now(); }
     else { t.elapsed += Date.now() - t.startTs; t.running = false; }
     beat(); save(); renderTimer();
   }
@@ -226,39 +235,8 @@
     save(); renderTimer(); $('adjModal').classList.add('hidden');
   }
 
-  /* ---- notifications ---- */
-  function askPerm() {
-    try { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } catch (e) {}
-  }
-  function beep() {
-    try {
-      var a = new (window.AudioContext || window.webkitAudioContext)(), o = a.createOscillator(), g = a.createGain();
-      o.connect(g); g.connect(a.destination); o.frequency.value = 880; g.gain.value = 0.15;
-      o.start(); o.stop(a.currentTime + 0.25);
-    } catch (e) {}
-  }
-  var origTitle = document.title, blink = null;
-  function notifyRunning() {
-    var names = order.filter(function (id) { return timers[id].running; }).map(function (id) { return timers[id].label; });
-    if (!names.length) return;
-    var msg = 'Still running: ' + names.join(', ');
-    try { if ('Notification' in window && Notification.permission === 'granted') new Notification('Timer still running', { body: msg, tag: 'timer-running' }); } catch (e) {}
-    beep();
-    if (!blink) { var on = false; blink = setInterval(function () { on = !on; document.title = on ? '⏱ ' + msg : origTitle; }, 1000); }
-  }
-  function stopBlink() { if (blink) { clearInterval(blink); blink = null; document.title = origTitle; } }
-
-  var hiddenSince = 0, lastNotify = 0;
-  document.addEventListener('visibilitychange', function () {
-    if (document.hidden) { hiddenSince = Date.now(); lastNotify = 0; }
-    else { stopBlink(); hiddenSince = 0; }
-  });
-  setInterval(function () {
-    beat();
-    if (document.hidden && anyRunning() && Date.now() - hiddenSince > 30000 && Date.now() - lastNotify > 300000) {
-      lastNotify = Date.now(); notifyRunning();
-    }
-  }, 5000);
+  /* ---- warn only when closing the tab/window with a timer running ---- */
+  setInterval(beat, 5000);
   window.addEventListener('beforeunload', function (e) { beat(); if (anyRunning()) { e.preventDefault(); e.returnValue = ''; } });
 
   /* ---- "left running while away" banners ---- */
@@ -280,10 +258,48 @@
     });
   }
 
+  /* ---- import / export ---- */
+  function exportTimers() {
+    if (!order.length) { alert('Nothing to export.'); return; }
+    var data = { app: 'circular-timers', version: 1, exportedAt: new Date().toISOString(),
+      timers: order.map(function (id) { return { label: timers[id].label, elapsedMs: Math.floor(elapsed(timers[id])) }; }) };
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'timers-' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  }
+  function importTimers(file) {
+    var r = new FileReader();
+    r.onload = function () {
+      try {
+        var d = JSON.parse(r.result);
+        var list = Array.isArray(d) ? d : d.timers;
+        if (!Array.isArray(list)) throw new Error('bad format');
+        var n = 0;
+        list.forEach(function (x) {
+          var ms = Number(x.elapsedMs != null ? x.elapsedMs : x.elapsed);
+          if (!x || typeof x.label !== 'string' || !isFinite(ms) || ms < 0) return;
+          var id = nextId++;
+          timers[id] = { label: x.label.slice(0, 40) || 'Timer ' + id, running: false, startTs: 0, elapsed: Math.floor(ms) };
+          order.push(id); n++;
+        });
+        if (!n) throw new Error('empty');
+        save(); renderList();
+        alert('Imported ' + n + ' timer' + (n > 1 ? 's' : '') + '.');
+      } catch (e) { alert('Import failed: not a valid timers file.'); }
+    };
+    r.readAsText(file);
+  }
+
   /* ---- events ---- */
   $('addBtn').addEventListener('click', function () { openName('create'); });
   $('timerTitle').addEventListener('click', function () { openName('rename'); });
   $('backBtn').addEventListener('click', goBack);
+  $('expBtn').addEventListener('click', exportTimers);
+  $('impBtn').addEventListener('click', function () { $('impFile').click(); });
+  $('impFile').addEventListener('change', function () { if (this.files[0]) importTimers(this.files[0]); this.value = ''; });
   $('delBtn').addEventListener('click', function () { removeTimer(currentId); });
   $('playBtn').addEventListener('click', togglePlay);
   $('resetBtn').addEventListener('click', reset);
